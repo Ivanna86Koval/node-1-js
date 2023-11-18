@@ -1,52 +1,37 @@
-import {
-  addContact,
-  getContactById,
-  listContacts,
-  removeContact,
-} from "./contacts.js";
-import { Command } from "commander";
+import { program } from "commander";
+import * as contactDatas from "./contacts.js";
 
-const program = new Command();
-program
-  .option("-a, --action <type>", "choose action")
-  .option("-i, --id <type>", "user id")
-  .option("-n, --name <type>", "user name")
-  .option("-e, --email <type>", "user email")
-  .option("-p, --phone <type>", "user phone");
-
-program.parse(process.argv);
-
-const argv = program.opts();
-
-function invokeAction({ action, id, name, email, phone }) {
+// TODO: рефакторити
+const invokeAction = async ({ action, contactId, name, email, phone }) => {
   switch (action) {
     case "list":
-      listContacts().then((contacts) => {
-        console.table(contacts);
-      });
+      const contacts = await contactDatas.listContacts();
       break;
-
     case "get":
-      getContactById(id).then((contact) => {
-        console.log(contact);
-      });
-      break;
+      const contactIdCode = await contactDatas.getContactById(contactId);
+      return console.log(contactIdCode);
 
     case "add":
-      addContact(name, email, phone).then((newContact) => {
-        console.log(newContact);
-      });
-      break;
+      const newContact = await contactDatas.addContact({ name, email, phone });
+      return console.log(newContact);
 
     case "remove":
-      removeContact(id).then((deletedContact) => {
-        console.log(deletedContact);
-      });
-      break;
+      const removeContacts = await contactDatas.removeContact(contactId);
+      return console.log(removeContacts);
 
     default:
       console.warn("\x1B[31m Unknown action type!");
   }
-}
+};
 
-invokeAction(argv);
+program
+  .option("-a, --action <type>", "choose action")
+  .option("-i, --contactId <type>", "user id")
+  .option("-n, --name <type>", "user name")
+  .option("-e, --email <type>", "user email")
+  .option("-p, --phone <type>", "user phone");
+
+program.parse();
+
+const options = program.opts();
+invokeAction(options);
